@@ -1,0 +1,22 @@
+{
+  "calendarTopMessage": "Calendario de distribución",
+  "mapTopMessage": "Sitios de distribución de alimentos BIT",
+  "intakeTopMessage": "Formulario de admisión",
+  "impactTopMessage": "Formulario de impacto",
+  "calendarMenu": "Calendario",
+  "findFoodMenu": "Buscar alimentos",
+  "foodFormMenu": "Formulario de alimentos",
+  "impactFormMenu": "Impacto",
+  "selectDate": "Seleccione una fecha",
+  "eventsFor": "Eventos para",
+  "noDrives": "No hay jornadas para este día.",
+  "tapDetails": "Toca para ver más detalles",
+  "event": "Evento",
+  "start": "Inicio",
+  "end": "Fin",
+  "openMaps": "Abrir en Mapas",
+  "errorMapPoints": "Error al cargar los puntos del mapa",
+  "clickOpenNewTab": "Haga clic abajo para abrir el formulario en una nueva pestaña del navegador.",
+  "openFormNewTab": "Abrir formulario en una pestaña nueva",
+  "impactForm": "https://forms.gle/9JnWGES1JFfuSiCK9"
+}

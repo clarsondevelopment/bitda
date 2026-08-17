@@ -1,0 +1,22 @@
+{
+  "calendarTopMessage": "Distribution Calendar",
+  "mapTopMessage": "BIT Food Distribution Sites",
+  "intakeTopMessage": "Intake Form",
+  "impactTopMessage": "Impact Form",
+  "calendarMenu": "Calendar",
+  "findFoodMenu": "Find Food",
+  "foodFormMenu": "Food Form",
+  "impactFormMenu": "Impact",
+  "selectDate": "Select a date",
+  "eventsFor": "Events for",
+  "noDrives": "No drives for this day.",
+  "tapDetails": "Tap to for more details",
+  "event": "Event",
+  "start": "Start",
+  "end": "End",
+  "openMaps": "Open in Maps",
+  "errorMapPoints": "Error loading map points",
+  "clickOpenNewTab": "Click below to open the form in a new browser tab.",
+  "openFormNewTab": "Open Form in New Tab",
+  "impactForm": "https://forms.gle/bmcn7W6R7MPQQNzF9"
+}
