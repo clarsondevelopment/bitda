@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "876685455267",
+    "project_id": "fdp2-ec1a2",
+    "storage_bucket": "fdp2-ec1a2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:876685455267:android:e8d3894cf2ed7380b87416",
+        "android_client_info": {
+          "package_name": "com.clarsondevelopment.bitdaample.fdp2v2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJSaRFhsdAxxk9Ho8qdv-K7Xe67oCPFuI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:876685455267:android:8f7f31cfccad5a37b87416",
+        "android_client_info": {
+          "package_name": "com.clarsondevelopment.bitda"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJSaRFhsdAxxk9Ho8qdv-K7Xe67oCPFuI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
