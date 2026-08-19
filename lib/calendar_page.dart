@@ -26,14 +26,13 @@ class _CalendarPageState
   DateTime? _selectedDay;
   final CalendarFormat _calendarFormat = CalendarFormat.month;
 
-  // Controllers to manage expansion state per event
   final Map<String, ExpansibleController> _tileControllers = {};
 
   @override
   void initState() {
     super.initState();
-    // Use the passed initial day if available, otherwise default to now
-    _focusedDay = widget.initialSelectedDay ?? DateTime.now();
+    final now = widget.initialSelectedDay ?? DateTime.now();
+    _focusedDay = DateTime(now.year, now.month, now.day);
     _selectedDay = _focusedDay;
   }
 
@@ -43,7 +42,6 @@ class _CalendarPageState
     super.dispose();
   }
 
-  // Parses documents from Firestore into a Date-to-Map (storing full doc data)
   Map<DateTime, List<Map<String, dynamic>>> _processFirestoreDocs(
       QuerySnapshot snapshot) {
     final Map<DateTime, List<Map<String, dynamic>>> eventsMap = {};
@@ -51,8 +49,9 @@ class _CalendarPageState
     for (var doc in snapshot.docs) {
       final data = Map<String, dynamic>.from(doc.data() as Map<String, dynamic>);
 
-      if (data['time'] != null && data['name'] != null) {
-        Timestamp timestamp = data['time'];
+      final timeField = data['start'] ?? data['time'];
+      if (timeField != null && data['name'] != null) {
+        Timestamp timestamp = timeField;
         DateTime eventDate = timestamp.toDate();
         final normalizedDate =
         DateTime(eventDate.year, eventDate.month, eventDate.day);
@@ -61,7 +60,6 @@ class _CalendarPageState
           eventsMap[normalizedDate] = [];
         }
 
-        // Save the document ID for tracking auto-expansion
         data['docId'] = doc.id;
         eventsMap[normalizedDate]!.add(data);
       }
@@ -71,12 +69,9 @@ class _CalendarPageState
 
   Future<void> _openMap(String address) async {
     if (address.trim().isEmpty || address == "null") {
-      debugPrint('Cannot open map: Address string is empty.');
       return;
     }
 
-    // Constructing with explicit named parameters natively handles
-    // encoding and prevents the query from being ignored or corrupted.
     final Uri mapWebUri = Uri(
       scheme: 'https',
       host: 'www.google.com',
@@ -86,22 +81,11 @@ class _CalendarPageState
         'query': address.trim(),
       },
     );
-
-    try {
-      // Launching as an external application prompts the system to intercept
-      // the query via the native Maps app or parse it perfectly in a browser.
-      await launchUrl(
-        mapWebUri,
-        mode: LaunchMode.externalApplication,
-      );
-    } catch (e) {
-      debugPrint('Error launching map URL: $e');
-    }
+    await launchUrl(
+      mapWebUri,
+      mode: LaunchMode.externalApplication,
+    );
   }
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +112,8 @@ class _CalendarPageState
             return eventsMap[normalizedDay] ?? [];
           }
 
-          final selectedEvents = getEventsForDay(_selectedDay ?? _focusedDay);
+          final activeDay = _selectedDay ?? _focusedDay;
+          final selectedEvents = getEventsForDay(activeDay);
 
           return Column(
             children: [
@@ -148,12 +133,14 @@ class _CalendarPageState
                 ),
                 onDaySelected: (selectedDay, focusedDay) {
                   setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
+                    _selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+                    _focusedDay = DateTime(focusedDay.year, focusedDay.month, focusedDay.day);
                   });
                 },
                 onPageChanged: (focusedDay) {
-                  _focusedDay = focusedDay;
+                  setState(() {
+                    _focusedDay = DateTime(focusedDay.year, focusedDay.month, focusedDay.day);
+                  });
                 },
               ),
               const Divider(thickness: 1),
@@ -179,17 +166,21 @@ class _CalendarPageState
                     final eventName = eventData['name'] ?? 'Unnamed Event';
                     final eventId = eventData['docId'] ?? eventName;
 
-                    // Convert timestamp to readable date/time string
-                    Timestamp timestamp = eventData['time'];
-                    DateTime eventDateTime = timestamp.toDate();
-                    Timestamp endtimestamp = eventData['end'];
-                    DateTime endDateTime = endtimestamp.toDate();
+                    Timestamp? startTimestamp = eventData['start'] ?? eventData['time'];
+                    DateTime eventDateTime = startTimestamp != null
+                        ? startTimestamp.toDate()
+                        : DateTime.now();
+
+                    Timestamp? endTimestamp = eventData['end'];
+                    DateTime endDateTime = endTimestamp != null
+                        ? endTimestamp.toDate()
+                        : eventDateTime;
+
                     String eventTimeFormatted =
                         '${eventDateTime.month}/${eventDateTime.day}/${eventDateTime.year} at ${eventDateTime.hour}:${eventDateTime.minute.toString().padLeft(2, '0')}';
                     String endTimeFormatted =
                         '${endDateTime.month}/${endDateTime.day}/${endDateTime.year} at ${endDateTime.hour}:${endDateTime.minute.toString().padLeft(2, '0')}';
 
-                    // Set up an expansion tile controller and check for auto-expand trigger
                     final controller = _tileControllers.putIfAbsent(
                       eventId,
                           () => ExpansibleController(),

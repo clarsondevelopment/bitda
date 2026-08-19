@@ -1,115 +1,179 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'dart:ui';
-import 'package:geocoding/geocoding.dart' as geo; // Imported to access the resolved location type
-import 'location_service.dart';
+
 import 'l10n/app_localizations.dart';
 
 class GeoPointMapScreen extends StatefulWidget {
   final Function(DateTime, String)? onEventSelected;
-  const GeoPointMapScreen({super.key, this.onEventSelected});
+
+  const GeoPointMapScreen({
+    super.key,
+    this.onEventSelected,
+  });
 
   @override
-  State<GeoPointMapScreen> createState() => _GeoPointMapScreenState();
+  State<GeoPointMapScreen> createState() =>
+      _GeoPointMapScreenState();
 }
 
-class _GeoPointMapScreenState extends State<GeoPointMapScreen> {
-  // Local state cache to store successfully converted markers
-  final Map<String, Marker> _resolvedMarkers = {};
-
-  /// Asynchronously converts a text address into a FlutterMap Marker object
-  Future<void> _processAddressMarker({
-    required String docId,
-    required String address,
-    required DateTime eventDate,
-  }) async {
-    // Skip if we already found the coordinates for this document to save API quota
-    if (_resolvedMarkers.containsKey(docId)) return;
-
-    final geo.Location? location = await LocationService.getCoordinates(address);
-
-    if (location != null && mounted) {
-      setState(() {
-        _resolvedMarkers[docId] = Marker(
-          point: LatLng(location.latitude, location.longitude),
-          width: 40,
-          height: 40,
-          child: GestureDetector(
-            onTap: () {
-              widget.onEventSelected?.call(eventDate, docId);
-            },
-            child: const Icon(Icons.location_pin, color: Colors.red, size: 40),
-          ),
-        );
-      });
-    }
-  }
-
+class _GeoPointMapScreenState
+    extends State<GeoPointMapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
+
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.mapTopMessage),
+        title: Text(
+          AppLocalizations.of(context)!.mapTopMessage,
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         forceMaterialTransparency: true,
+
         flexibleSpace: ClipRect(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 1.0, sigmaY: 1.0),
+            filter: ImageFilter.blur(
+              sigmaX: 1.0,
+              sigmaY: 1.0,
+            ),
             child: Container(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: Colors.white.withValues(
+                alpha: 0.15,
+              ),
             ),
           ),
         ),
       ),
+
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('locations').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('locations')
+            .snapshots(),
+
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text(AppLocalizations.of(context)!.errorMapPoints));
+            return Center(
+              child: Text(
+                AppLocalizations.of(context)!
+                    .errorMapPoints,
+              ),
+            );
           }
-          if (snapshot.connectionState == ConnectionState.waiting && _resolvedMarkers.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+
+          if (snapshot.connectionState ==
+              ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
 
-          final docs = snapshot.data?.docs ?? [];
+          final docs =
+              snapshot.data?.docs ?? [];
 
-          // Loop through active snapshot data to trigger conversions
-          for (var doc in docs) {
-            final data = doc.data() as Map<String, dynamic>;
+          final List<Marker> markers = [];
 
-            // 1. Ensure your string address field and time exists (Change 'address' to match your Firestore field key)
-            if (data['time'] == null || data['address'] == null) continue;
+          for (final doc in docs) {
+            final data =
+            doc.data() as Map<String, dynamic>;
 
-            final eventDocId = doc.id;
-            final eventDate = (data['time'] as Timestamp).toDate();
-            final String addressString = data['address'];
+            // ------------------------------------------------
+            // Required fields (support both 'start' and 'time')
+            // ------------------------------------------------
 
-            // 2. Schedule the asynchronous geocoding process outside the main draw pass
-            _processAddressMarker(
-              docId: eventDocId,
-              address: addressString,
-              eventDate: eventDate,
+            final start = data['start'] ?? data['time'];
+            final end = data['end'];
+
+            if (start is! Timestamp || end is! Timestamp) {
+              continue;
+            }
+
+            final startTime = start.toDate();
+            final latitudeValue =
+            data['latitude'];
+            final longitudeValue =
+            data['longitude'];
+
+            if (latitudeValue is! num ||
+                longitudeValue is! num) {
+              continue;
+            }
+
+            final latitude =
+            latitudeValue.toDouble();
+
+            final longitude =
+            longitudeValue.toDouble();
+
+            // ------------------------------------------------
+            // Validate coordinates
+            // ------------------------------------------------
+
+            if (latitude < -90 ||
+                latitude > 90 ||
+                longitude < -180 ||
+                longitude > 180) {
+              continue;
+            }
+
+            // ------------------------------------------------
+            // Create marker
+            // ------------------------------------------------
+
+            markers.add(
+              Marker(
+                point: LatLng(
+                  latitude,
+                  longitude,
+                ),
+                width: 40,
+                height: 40,
+
+                child: GestureDetector(
+                  onTap: () {
+                    widget.onEventSelected?.call(
+                      startTime,
+                      doc.id,
+                    );
+                  },
+
+                  child: const Icon(
+                    Icons.location_pin,
+                    color: Colors.red,
+                    size: 40,
+                  ),
+                ),
+              ),
             );
           }
 
           return FlutterMap(
             options: const MapOptions(
-              initialCenter: LatLng(38.9717, -76.4922), // Annapolis, Maryland
+              initialCenter: LatLng(
+                38.9717,
+                -76.4922,
+              ),
               initialZoom: 12.0,
             ),
+
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.clarsondevelopment.bitda',
+                urlTemplate:
+                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+
+                userAgentPackageName:
+                'com.clarsondevelopment.bitda',
               ),
-              // 3. Render the list generated by the asynchronous dictionary
-              MarkerLayer(markers: _resolvedMarkers.values.toList()),
+
+              MarkerLayer(
+                markers: markers,
+              ),
             ],
           );
         },
