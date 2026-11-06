@@ -42,7 +42,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noDrives => 'No drives for this day.';
 
   @override
-  String get tapDetails => 'Tap to for more details';
+  String get tapDetails => 'Tap for more details';
 
   @override
   String get event => 'Event';

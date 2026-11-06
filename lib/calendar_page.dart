@@ -16,12 +16,11 @@ class CalendarPage extends StatefulWidget {
   });
 
   @override
-  State<CalendarPage> createState() =>
-      _CalendarPageState();
+  CalendarPageState createState() =>
+      CalendarPageState();
 }
 
-class _CalendarPageState
-    extends State<CalendarPage> {
+class CalendarPageState extends State<CalendarPage> {
   late DateTime _focusedDay;
   DateTime? _selectedDay;
   final CalendarFormat _calendarFormat = CalendarFormat.month;
@@ -34,6 +33,29 @@ class _CalendarPageState
     final now = widget.initialSelectedDay ?? DateTime.now();
     _focusedDay = DateTime(now.year, now.month, now.day);
     _selectedDay = _focusedDay;
+  }
+
+  void jumpToEvent(DateTime eventDate, String eventId) {
+    final normalizedDate = DateTime(
+      eventDate.year,
+      eventDate.month,
+      eventDate.day,
+    );
+
+    setState(() {
+      _selectedDay = normalizedDate;
+      _focusedDay = normalizedDate;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final controller = _tileControllers[eventId];
+
+      if (controller != null) {
+        controller.expand();
+      }
+    });
   }
 
   @override

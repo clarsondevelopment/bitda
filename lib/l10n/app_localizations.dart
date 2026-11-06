@@ -167,7 +167,7 @@ abstract class AppLocalizations {
   /// No description provided for @tapDetails.
   ///
   /// In en, this message translates to:
-  /// **'Tap to for more details'**
+  /// **'Tap for more details'**
   String get tapDetails;
 
   /// No description provided for @event.
