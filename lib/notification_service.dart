@@ -24,9 +24,19 @@ class NotificationService {
       '@mipmap/ic_launcher',
     );
 
+    // iOS/macOS need their own settings or initialize() throws and
+    // nothing below runs (topic subscribe, token).
+    const DarwinInitializationSettings darwinSettings =
+    DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
     const InitializationSettings settings =
     InitializationSettings(
       android: androidSettings,
+      iOS: darwinSettings,
     );
 
     await _notificationsPlugin.initialize(
@@ -39,6 +49,18 @@ class NotificationService {
         ?.createNotificationChannel(
       _channel,
     );
+
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      // Ask for push permission and let iOS show FCM
+      // notifications itself while the app is in the foreground.
+      await FirebaseMessaging.instance.requestPermission();
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
 
     // Listen for FCM messages while the app is open.
     FirebaseMessaging.onMessage.listen(
@@ -68,7 +90,9 @@ class NotificationService {
         final RemoteNotification? notification =
             message.notification;
 
-        if (notification != null) {
+        // iOS already presents it (options above); avoid a duplicate.
+        if (notification != null &&
+            defaultTargetPlatform != TargetPlatform.iOS) {
           _showNotification(
             notification.title ??
                 'Food Pantry Update',

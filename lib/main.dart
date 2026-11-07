@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'calendar_page.dart';
@@ -51,10 +52,24 @@ Future<void> _initializeNotifications() async {
 
     await notificationService.initNotifications();
 
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      // On iOS the FCM token needs an APNs token first. The simulator
+      // never gets one, and a real device only with the Push
+      // Notifications capability and an APNs key in Firebase.
+      final String? apnsToken =
+          await FirebaseMessaging.instance.getAPNSToken();
+      if (apnsToken == null) {
+        debugPrint(
+          'No APNs token (simulator, or push capability missing): '
+          'skipping topic subscription',
+        );
+        return;
+      }
+    }
+
     await FirebaseMessaging.instance.subscribeToTopic(
       'pantry_updates',
     );
-    await FirebaseMessaging.instance.subscribeToTopic('pantry_updates');
 
     debugPrint('Subscribed to pantry_updates');
 
