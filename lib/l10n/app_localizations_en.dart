@@ -39,6 +39,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventsFor => 'Events for';
 
   @override
+  String get today => 'Today';
+
+  @override
   String get noDrives => 'No drives for this day.';
 
   @override

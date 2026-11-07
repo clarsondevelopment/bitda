@@ -35,6 +35,18 @@ class CalendarPageState extends State<CalendarPage> {
     _selectedDay = _focusedDay;
   }
 
+  /// Returns the calendar to the current month with today selected,
+  /// so the events list below shows today's distributions again.
+  void goToToday() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    setState(() {
+      _selectedDay = today;
+      _focusedDay = today;
+    });
+  }
+
   void jumpToEvent(DateTime eventDate, String eventId) {
     final normalizedDate = DateTime(
       eventDate.year,
@@ -115,6 +127,13 @@ class CalendarPageState extends State<CalendarPage> {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.calendarTopMessage),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.today),
+            tooltip: AppLocalizations.of(context)!.today,
+            onPressed: goToToday,
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('locations').snapshots(),

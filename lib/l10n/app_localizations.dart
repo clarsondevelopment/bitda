@@ -158,6 +158,12 @@ abstract class AppLocalizations {
   /// **'Events for'**
   String get eventsFor;
 
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
   /// No description provided for @noDrives.
   ///
   /// In en, this message translates to:
